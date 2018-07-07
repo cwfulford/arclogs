@@ -1,0 +1,48 @@
+#!/bin/bash
+# $Id: arclogs,v 1.1 2018/07/07 12:20:39 fulford Exp fulford $
+# $Source: /src/admin/usr/local/etc/RCS/arclogs,v $
+# $Revision: 1.1 $
+# Author C W Fulford.
+# Copyright 2016 (c) C W Fulford.
+# Licensed for public use under the LGPL, .
+# For assistance contact fulford@fulford.net 0793 572 8612
+########################################################################
+cmd=`basename $0`
+ver=`echo "$Id: arclogs,v 1.1 2018/07/07 12:20:39 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
+syntax="$cmd [-c <configfile>] [-d] [-h <hostid>] [-v]|-V"
+while [ $# -gt 0 ] ;do
+	case $1 in 
+		-c) config=$2;shift 2;;
+		-d) set -x;debug=0;shift;;
+		-h) hostid=$2;shift 2;;			
+		-v) verbose=:;shift;;
+		-V) echo "$cmd $Revision: 1.1 $ $Date: 2018/07/07 12:20:39 $"|awk '{print $1,$3,$6}';exit;;  
+	esac
+done
+
+config=${config:-/usr/local/etc/${cmd}.cf
+[ -r $config ]||{echo $cmd: Can't find $config;exit 1}
+eval `sed <$config -ne "/^$hostid:/,/^$/{/^[\t ]*[^#].*/p}"`
+
+# if number of archive not set use default
+number=${number:-3}
+
+cd $logdir
+c=$number
+if [ $logfile -gt $logsize ] then
+	while [ $c -gt 0 ]; do
+		src=`expr $c - 1`
+		if [ $src -gt 0 ] ;then
+			src=$src
+		else
+			src=""
+		fi
+		if [ -f $logfile$src ];then
+			mv $logfile$src $logfile$c
+			c=$src
+		fi
+fi
+	done
+fi
+
+	
